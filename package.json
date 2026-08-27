@@ -1,0 +1,16 @@
+{
+  "name": "smittedrop-duel",
+  "version": "1.0.0",
+  "description": "SMITTEDROP - case opening game with real player-vs-player duels",
+  "main": "server.js",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "socket.io": "^4.7.5"
+  }
+}
