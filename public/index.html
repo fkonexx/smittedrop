@@ -1,0 +1,1258 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SMITTEDROP — гра</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0a0f;
+    --bg-panel:#121220;
+    --bg-panel-2:#191928;
+    --bg-panel-3:#1f1f33;
+    --line:#2a2a40;
+    --text:#e9e9f2;
+    --text-dim:#8c8ca3;
+    --accent:#7c5cff;
+    --accent-2:#ffb800;
+    --danger:#ff4d6d;
+    --success:#3ddc84;
+
+    --c-common:#9ca3af;
+    --c-uncommon:#4d8dff;
+    --c-rare:#a259ff;
+    --c-epic:#ff4dd8;
+    --c-mythic:#ff2d2d;
+    --c-legendary:#ffb800;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(circle at 15% 0%, rgba(124,92,255,0.10), transparent 45%),
+      radial-gradient(circle at 90% 20%, rgba(255,184,0,0.06), transparent 40%),
+      var(--bg);
+    color:var(--text);
+    font-family:'Inter',sans-serif;
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,.display{font-family:'Rajdhani',sans-serif;font-weight:700;letter-spacing:.02em;}
+  .hazard{
+    height:6px;
+    background:repeating-linear-gradient(135deg, var(--accent-2) 0 14px, #0a0a0f 14px 28px);
+    opacity:.85;
+  }
+  header{
+    position:sticky; top:0; z-index:50;
+    background:rgba(10,10,15,0.92);
+    backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--line);
+  }
+  .topbar{
+    max-width:1180px; margin:0 auto;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:14px 20px;
+    gap:16px; flex-wrap:wrap;
+  }
+  .logo{ display:flex; align-items:center; gap:10px; font-size:22px; font-weight:700; letter-spacing:.04em; }
+  .logo .mark{
+    width:30px;height:30px; border-radius:6px;
+    background:linear-gradient(135deg,var(--accent),var(--accent-2));
+    display:flex;align-items:center;justify-content:center;
+    font-size:16px; transform:rotate(-6deg);
+    box-shadow:0 0 18px rgba(124,92,255,.5);
+  }
+  .logo .sub{font-size:11px; color:var(--text-dim); font-weight:500; letter-spacing:.1em; text-transform:uppercase; margin-top:-2px;}
+  .wallet{
+    display:flex; align-items:center; gap:14px;
+    background:var(--bg-panel); border:1px solid var(--line);
+    padding:8px 16px; border-radius:10px;
+  }
+  .wallet .amt{font-family:'Rajdhani',sans-serif; font-size:20px; font-weight:700; color:var(--accent-2);}
+  .wallet .lbl{font-size:10px; color:var(--text-dim); text-transform:uppercase; letter-spacing:.08em;}
+  .btn-reset{
+    background:none; border:1px solid var(--line); color:var(--text-dim);
+    padding:8px 12px; border-radius:8px; cursor:pointer; font-size:12px; font-family:inherit;
+  }
+  .btn-reset:hover{border-color:var(--danger); color:var(--danger);}
+
+  nav.tabs{
+    max-width:1180px; margin:0 auto; padding:0 20px;
+    display:flex; gap:4px; overflow-x:auto;
+  }
+  nav.tabs button{
+    background:none; border:none; color:var(--text-dim);
+    font-family:'Rajdhani',sans-serif; font-weight:600; font-size:15px;
+    padding:12px 18px; cursor:pointer; letter-spacing:.03em;
+    border-bottom:2px solid transparent; white-space:nowrap;
+  }
+  nav.tabs button.active{color:var(--text); border-bottom-color:var(--accent);}
+  nav.tabs button:hover{color:var(--text);}
+
+  main{max-width:1180px; margin:0 auto; padding:26px 20px 80px;}
+  section.view{display:none; animation:fadeIn .25s ease;}
+  section.view.active{display:block;}
+  @keyframes fadeIn{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);}}
+
+  .page-head{margin-bottom:20px;}
+  .page-head h2{font-size:26px; margin:0 0 4px;}
+  .page-head p{color:var(--text-dim); margin:0; font-size:14px;}
+
+  .cases-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); gap:16px; }
+  .case-card{
+    background:var(--bg-panel); border:1px solid var(--line); border-radius:14px;
+    padding:18px; position:relative; overflow:hidden;
+    display:flex; flex-direction:column; align-items:center; text-align:center; gap:8px;
+  }
+  .case-card::before{
+    content:''; position:absolute; top:0; left:0; right:0; height:3px;
+    background:var(--tier-color, var(--accent));
+  }
+  .case-icon{ font-size:52px; margin:10px 0 4px; filter:drop-shadow(0 0 14px var(--tier-color, var(--accent))); }
+  .case-card h3{margin:0; font-size:17px;}
+  .case-card .odds-line{font-size:10px; color:var(--text-dim); line-height:1.6;}
+  .case-card .price{ font-family:'Rajdhani',sans-serif; font-weight:700; font-size:18px; color:var(--accent-2); margin-top:4px; }
+  .btn{
+    font-family:'Rajdhani',sans-serif; font-weight:700; letter-spacing:.03em;
+    border:none; border-radius:9px; padding:10px 18px; cursor:pointer; font-size:15px;
+    background:linear-gradient(135deg,var(--accent),#5a3dff); color:#fff;
+    box-shadow:0 4px 14px rgba(124,92,255,.35);
+  }
+  .btn:disabled{opacity:.4; cursor:not-allowed; box-shadow:none;}
+  .btn.gold{background:linear-gradient(135deg,var(--accent-2),#ff7a00); box-shadow:0 4px 14px rgba(255,184,0,.3);}
+  .btn.ghost{background:none; border:1px solid var(--line); color:var(--text); box-shadow:none;}
+  .btn.danger{background:linear-gradient(135deg,var(--danger),#c92c48); box-shadow:0 4px 14px rgba(255,77,109,.3);}
+  .btn.full{width:100%;}
+  .btn.sm{padding:7px 12px; font-size:13px;}
+
+  .reel-window{
+    position:relative; overflow:hidden; height:120px; border-radius:10px;
+    background:var(--bg-panel-2);
+    mask-image:linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  }
+  .reel-window .marker{
+    position:absolute; left:50%; top:0; bottom:0; width:2px; transform:translateX(-1px);
+    background:var(--accent-2); z-index:5; box-shadow:0 0 10px var(--accent-2);
+  }
+  .reel-window .marker::before, .reel-window .marker::after{
+    content:''; position:absolute; left:50%; width:0; height:0; transform:translateX(-50%);
+    border-left:7px solid transparent; border-right:7px solid transparent;
+  }
+  .reel-window .marker::before{top:-1px; border-top:9px solid var(--accent-2);}
+  .reel-window .marker::after{bottom:-1px; border-bottom:9px solid var(--accent-2);}
+  .reel-track{position:absolute; top:0; left:0; height:100%; display:flex; will-change:transform;}
+  .reel-item{
+    width:110px; height:100%; flex:0 0 auto; margin-right:8px;
+    border-radius:8px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px;
+    background:var(--bg-panel-3);
+    border:1px solid var(--r-color, var(--line));
+    box-shadow:inset 0 0 22px -6px var(--r-color, transparent);
+  }
+  .reel-item .ic{font-size:34px;}
+  .reel-item .nm{font-size:10px; text-align:center; padding:0 6px; color:var(--text-dim); line-height:1.2;}
+
+  .tag-rarity{
+    font-size:10px; text-transform:uppercase; letter-spacing:.08em; font-weight:700;
+    padding:2px 8px; border-radius:20px; display:inline-block;
+  }
+  .tag-collection{
+    font-size:10.5px; color:var(--text-dim); background:var(--bg-panel-2); border:1px solid var(--line);
+    padding:2px 8px; border-radius:20px; display:inline-block;
+  }
+
+  .inv-summary{ display:flex; gap:14px; margin-bottom:18px; flex-wrap:wrap; }
+  .inv-summary .stat{ background:var(--bg-panel); border:1px solid var(--line); border-radius:10px; padding:12px 18px; min-width:140px; }
+  .inv-summary .stat .n{font-family:'Rajdhani',sans-serif; font-size:22px; font-weight:700;}
+  .inv-summary .stat .l{font-size:11px; color:var(--text-dim); text-transform:uppercase; letter-spacing:.06em;}
+  .inv-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:12px; }
+  .inv-item{
+    background:var(--bg-panel); border:1px solid var(--r-color,var(--line)); border-radius:12px;
+    padding:12px; text-align:center; position:relative;
+    box-shadow:inset 0 0 20px -8px var(--r-color, transparent);
+  }
+  .inv-item .ic{font-size:34px; margin-bottom:4px;}
+  .inv-item .nm{font-size:12.5px; font-weight:600; margin-bottom:2px; min-height:32px; display:flex; align-items:center; justify-content:center;}
+  .inv-item .coll{font-size:10px; color:var(--text-dim); margin-bottom:4px;}
+  .inv-item .val{color:var(--accent-2); font-size:12px; margin-bottom:8px; font-family:'Rajdhani',sans-serif; font-weight:700;}
+  .inv-item button{width:100%; font-size:12px; padding:6px;}
+  .empty-note{
+    color:var(--text-dim); text-align:center; padding:50px 10px; border:1px dashed var(--line); border-radius:12px;
+    font-size:14px;
+  }
+
+  .upgrade-layout{display:grid; grid-template-columns:1fr 1fr; gap:22px;}
+  @media(max-width:820px){.upgrade-layout{grid-template-columns:1fr;}}
+  .panel{background:var(--bg-panel); border:1px solid var(--line); border-radius:14px; padding:18px;}
+  .panel h3{margin:0 0 12px; font-size:16px;}
+  .pick-list{display:flex; flex-direction:column; gap:8px; max-height:340px; overflow-y:auto; padding-right:4px;}
+  .pick-row{
+    display:flex; align-items:center; gap:10px; padding:8px 10px; border-radius:8px;
+    border:1px solid var(--line); cursor:pointer; background:var(--bg-panel-2);
+  }
+  .pick-row.selected{border-color:var(--accent); box-shadow:0 0 0 1px var(--accent) inset;}
+  .pick-row .ic{font-size:22px;}
+  .pick-row .info{flex:1;}
+  .pick-row .nm{font-size:13px; font-weight:600;}
+  .pick-row .val{font-size:11px; color:var(--text-dim);}
+  .mult-grid{display:flex; gap:8px; flex-wrap:wrap; margin:10px 0 16px;}
+  .mult-btn{
+    border:1px solid var(--line); background:var(--bg-panel-2); color:var(--text);
+    padding:8px 14px; border-radius:8px; cursor:pointer; font-family:'Rajdhani',sans-serif; font-weight:700;
+  }
+  .mult-btn.active{background:var(--accent); border-color:var(--accent);}
+  .target-preview{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    background:var(--bg-panel-2); border:1px solid var(--line); border-radius:10px; padding:12px; margin-bottom:14px;
+  }
+  .target-preview .side{text-align:center; flex:1;}
+  .target-preview .side .ic{font-size:30px;}
+  .target-preview .arrow{color:var(--text-dim); font-size:20px;}
+
+  .wheel-wrap{display:flex; flex-direction:column; align-items:center; gap:10px; margin:12px 0 18px;}
+  .wheel{
+    width:170px; height:170px; border-radius:50%; position:relative;
+    border:5px solid var(--bg-panel-3);
+    box-shadow:0 0 0 1px var(--line), 0 8px 26px rgba(0,0,0,.4);
+  }
+  .wheel .hub{
+    position:absolute; left:50%; top:50%; width:22px; height:22px; border-radius:50%;
+    background:var(--bg-panel-3); border:2px solid var(--line); transform:translate(-50%,-50%); z-index:3;
+  }
+  .wheel .needle{
+    position:absolute; left:50%; top:50%; width:4px; height:78px;
+    background:linear-gradient(#fff,#c8c8d6); border-radius:3px;
+    transform-origin:50% 100%; transform:translate(-50%,-100%) rotate(0deg);
+    box-shadow:0 0 10px rgba(255,255,255,.6); z-index:2;
+  }
+  .wheel .needle::after{
+    content:''; position:absolute; top:-6px; left:50%; transform:translateX(-50%);
+    border-left:6px solid transparent; border-right:6px solid transparent; border-bottom:10px solid #fff;
+  }
+  .chance-txt{font-family:'Rajdhani',sans-serif; font-size:16px; font-weight:700;}
+
+  /* ---------- duel sub-tabs ---------- */
+  .subtabs{display:flex; gap:8px; margin-bottom:20px; flex-wrap:wrap;}
+  .subtabs button{
+    background:var(--bg-panel); border:1px solid var(--line); color:var(--text-dim);
+    font-family:'Rajdhani',sans-serif; font-weight:700; font-size:14px;
+    padding:9px 16px; border-radius:9px; cursor:pointer;
+  }
+  .subtabs button.active{color:#fff; border-color:var(--accent); background:linear-gradient(135deg,var(--accent),#5a3dff);}
+
+  .battle-setup{display:flex; gap:24px; flex-wrap:wrap; align-items:flex-end; margin-bottom:20px;}
+  .field label{display:block; font-size:11px; color:var(--text-dim); text-transform:uppercase; letter-spacing:.06em; margin-bottom:6px;}
+  select, input[type=text]{
+    background:var(--bg-panel-2); color:var(--text); border:1px solid var(--line); border-radius:8px;
+    padding:9px 12px; font-family:inherit; font-size:14px;
+  }
+  .rounds-btns{display:flex; gap:6px;}
+  .battle-arena{display:grid; grid-template-columns:1fr 1fr; gap:18px;}
+  @media(max-width:760px){.battle-arena{grid-template-columns:1fr;}}
+  .arena-side{background:var(--bg-panel); border:1px solid var(--line); border-radius:14px; padding:16px;}
+  .arena-side.me{border-color:var(--accent);}
+  .arena-side h4{margin:0 0 10px; font-size:14px; display:flex; justify-content:space-between; align-items:center; color:var(--text-dim); text-transform:uppercase; letter-spacing:.05em;}
+  .arena-side .total{font-family:'Rajdhani',sans-serif; font-size:22px; font-weight:700; color:var(--accent-2);}
+  .round-drops{display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; min-height:70px;}
+  .round-drops .ritem{
+    width:64px; text-align:center; background:var(--bg-panel-2); border:1px solid var(--r-color,var(--line)); border-radius:8px; padding:6px 2px;
+  }
+  .round-drops .ritem .ic{font-size:22px;}
+  .round-drops .ritem .val{font-size:10px; color:var(--accent-2);}
+
+  /* ---------- online duel lobby ---------- */
+  .duel-online{max-width:640px;}
+  .lobby-choice{display:flex; gap:16px; flex-wrap:wrap;}
+  .lobby-card{
+    flex:1; min-width:230px; background:var(--bg-panel); border:1px solid var(--line); border-radius:14px;
+    padding:20px; text-align:center;
+  }
+  .lobby-card h3{margin:0 0 8px; font-size:17px;}
+  .lobby-card p{color:var(--text-dim); font-size:13px; margin:0 0 14px;}
+  .code-box{
+    display:flex; align-items:center; justify-content:center; gap:10px; margin:14px 0;
+  }
+  .code-box .code{
+    font-family:'Rajdhani',sans-serif; font-size:32px; font-weight:700; letter-spacing:.15em;
+    background:var(--bg-panel-2); border:1px solid var(--line); border-radius:10px; padding:10px 20px;
+    color:var(--accent-2);
+  }
+  .link-row{
+    display:flex; gap:8px; align-items:center; background:var(--bg-panel-2); border:1px solid var(--line);
+    border-radius:8px; padding:8px 10px; margin:10px 0; overflow:hidden;
+  }
+  .link-row input{flex:1; background:none; border:none; color:var(--text-dim); font-size:12px; outline:none;}
+  .status-pill{
+    display:inline-flex; align-items:center; gap:6px; font-size:12px; color:var(--text-dim);
+    background:var(--bg-panel-2); border:1px solid var(--line); border-radius:20px; padding:5px 12px;
+  }
+  .dot{width:8px; height:8px; border-radius:50%; background:var(--text-dim);}
+  .dot.on{background:var(--success); box-shadow:0 0 8px var(--success);}
+  .players-row{display:flex; gap:14px; margin:16px 0; flex-wrap:wrap; justify-content:center;}
+  .player-chip{
+    display:flex; align-items:center; gap:8px; background:var(--bg-panel-2); border:1px solid var(--line);
+    border-radius:20px; padding:8px 14px; font-size:13px;
+  }
+  .player-chip.ready{border-color:var(--success); color:var(--success);}
+  .player-chip .host-badge{font-size:10px; color:var(--accent-2); border:1px solid var(--accent-2); border-radius:8px; padding:1px 5px;}
+
+  ::-webkit-scrollbar{width:8px; height:8px;}
+  ::-webkit-scrollbar-thumb{background:var(--line); border-radius:4px;}
+
+  .toast-wrap{position:fixed; bottom:20px; right:20px; z-index:200; display:flex; flex-direction:column; gap:8px;}
+  .toast{
+    background:var(--bg-panel); border:1px solid var(--line); border-left:4px solid var(--accent);
+    padding:12px 16px; border-radius:8px; font-size:13px; min-width:220px;
+    animation:slideIn .25s ease; box-shadow:0 6px 20px rgba(0,0,0,.4);
+  }
+  @keyframes slideIn{from{opacity:0; transform:translateX(20px);} to{opacity:1; transform:translateX(0);}}
+
+  .modal-overlay{
+    position:fixed; inset:0; background:rgba(5,5,10,.72); backdrop-filter:blur(3px);
+    display:flex; align-items:center; justify-content:center; z-index:300;
+    opacity:0; pointer-events:none; transition:opacity .25s ease; padding:20px;
+  }
+  .modal-overlay.show{opacity:1; pointer-events:auto;}
+  .modal-card{
+    background:var(--bg-panel); border:1px solid var(--line); border-radius:18px;
+    padding:30px 26px; max-width:380px; width:100%; text-align:center;
+    transform:scale(.88) translateY(10px); transition:transform .3s cubic-bezier(.2,.9,.25,1.2);
+    box-shadow:0 20px 60px rgba(0,0,0,.5);
+  }
+  .modal-overlay.show .modal-card{transform:scale(1) translateY(0);}
+  .modal-card.wide{max-width:640px; padding:26px;}
+  .modal-reel .m-title{font-family:'Rajdhani',sans-serif; font-weight:700; font-size:18px; margin:0 0 16px; color:var(--text-dim); text-transform:uppercase; letter-spacing:.06em;}
+  .modal-card .m-icon{font-size:64px; margin-bottom:6px; filter:drop-shadow(0 0 20px var(--r-color, var(--accent)));}
+  .modal-card .m-title{font-family:'Rajdhani',sans-serif; font-weight:700; font-size:22px; margin:6px 0 2px;}
+  .modal-card .m-sub{color:var(--text-dim); font-size:12.5px; margin-bottom:10px;}
+  .modal-card .m-val{font-family:'Rajdhani',sans-serif; font-size:20px; font-weight:700; color:var(--accent-2); margin-bottom:14px;}
+  .modal-card .m-items{display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-bottom:16px;}
+  .modal-card .m-items .mi{
+    width:56px; background:var(--bg-panel-2); border:1px solid var(--r-color,var(--line)); border-radius:8px; padding:6px 2px;
+  }
+  .modal-card .m-items .mi .ic{font-size:20px;}
+  .modal-card .m-items .mi .val{font-size:9px; color:var(--accent-2);}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hazard"></div>
+  <div class="topbar">
+    <div class="logo">
+      <div class="mark">📦</div>
+      <div>
+        SMITTEDROP
+        <div class="sub">Симулятор кейсів — гра, не реальні гроші</div>
+      </div>
+    </div>
+    <div style="display:flex; align-items:center; gap:10px;">
+      <div class="wallet">
+        <div>
+          <div class="lbl">Голда</div>
+          <div class="amt" id="balanceDisplay">0 голд</div>
+        </div>
+      </div>
+      <button class="btn-reset" id="resetBtn">Скинути гру</button>
+    </div>
+  </div>
+  <nav class="tabs">
+    <button data-tab="cases" class="active">Кейси</button>
+    <button data-tab="battle">Дуель</button>
+    <button data-tab="upgrade">Апгрейд</button>
+    <button data-tab="inventory">Інвентар</button>
+  </nav>
+</header>
+
+<main>
+
+  <!-- CASES -->
+  <section class="view active" id="view-cases">
+    <div class="page-head">
+      <h2>Відкривай кейси</h2>
+      <p>10 кейсів різних цінових категорій — від копійчаного до абсолютного. Це віртуальна валюта — просто гра.</p>
+    </div>
+    <div class="cases-grid" id="casesGrid"></div>
+  </section>
+
+  <!-- BATTLE / DUEL -->
+  <section class="view" id="view-battle">
+    <div class="page-head">
+      <h2>Дуель кейсів</h2>
+      <p>Грайте проти бота для розминки, або відкрийте справжню дуель проти іншого гравця онлайн.</p>
+    </div>
+
+    <div class="subtabs">
+      <button data-subtab="online" class="active">🌐 Дуель з гравцем</button>
+      <button data-subtab="bot">🤖 Проти бота</button>
+    </div>
+
+    <!-- ONLINE DUEL -->
+    <div id="subview-online">
+      <div id="onlineConnStatus" class="status-pill" style="margin-bottom:14px;">
+        <span class="dot" id="connDot"></span><span id="connText">З'єднання...</span>
+      </div>
+
+      <!-- Lobby: choose create or join -->
+      <div id="duelLobby" class="duel-online">
+        <div class="lobby-choice">
+          <div class="lobby-card">
+            <h3>🎮 Стати хостом</h3>
+            <p>Створи дуель, отримай посилання/код і надішли другому гравцю. Ви граєте кожен на своєму пристрої.</p>
+            <input type="text" id="hostNameInput" placeholder="Твоє ім'я" style="width:100%; margin-bottom:10px;">
+            <button class="btn gold full" id="createDuelBtn">Створити дуель</button>
+          </div>
+          <div class="lobby-card">
+            <h3>🔑 Приєднатися</h3>
+            <p>Введи код, який тобі надіслав хост, щоб зайти в його дуель.</p>
+            <input type="text" id="joinNameInput" placeholder="Твоє ім'я" style="width:100%; margin-bottom:8px;">
+            <input type="text" id="joinCodeInput" placeholder="Код кімнати (напр. AB12C)" style="width:100%; margin-bottom:10px; text-transform:uppercase;">
+            <button class="btn full" id="joinDuelBtn">Приєднатися</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Room: waiting / configuring -->
+      <div id="duelRoom" class="duel-online" style="display:none;">
+        <div class="lobby-card" style="max-width:640px; margin:0 auto;">
+          <h3 id="roomTitle">Кімната дуелі</h3>
+          <div class="code-box">
+            <div class="code" id="roomCodeText">-----</div>
+            <button class="btn ghost sm" id="copyCodeBtn">Копіювати код</button>
+          </div>
+          <div class="link-row">
+            <input type="text" id="roomLinkInput" readonly>
+            <button class="btn ghost sm" id="copyLinkBtn">Копіювати посилання</button>
+          </div>
+          <div class="players-row" id="playersRow"></div>
+
+          <div id="hostConfig" style="display:none; margin-top:10px;">
+            <div class="battle-setup" style="justify-content:center;">
+              <div class="field">
+                <label>Кейс для дуелі</label>
+                <select id="duelCaseSelect"></select>
+              </div>
+              <div class="field">
+                <label>Раунди</label>
+                <div class="rounds-btns" id="duelRoundsBtns"></div>
+              </div>
+            </div>
+          </div>
+          <div id="guestConfigNote" style="display:none; color:var(--text-dim); font-size:13px; margin:8px 0;">
+            Хост обирає кейс і кількість раундів.
+          </div>
+
+          <div style="display:flex; gap:10px; justify-content:center; margin-top:14px;">
+            <button class="btn gold" id="readyBtn">Я готовий</button>
+            <button class="btn ghost" id="leaveRoomBtn">Вийти з кімнати</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Live battle arena -->
+      <div id="duelArena" style="display:none; margin-top:20px;">
+        <div class="battle-arena">
+          <div class="arena-side me">
+            <h4>Ти (<span id="meName"></span>) <span class="total" id="meTotal">0 голд</span></h4>
+            <div class="round-drops" id="meDrops"></div>
+          </div>
+          <div class="arena-side">
+            <h4>Суперник (<span id="oppName"></span>) <span class="total" id="oppTotal">0 голд</span></h4>
+            <div class="round-drops" id="oppDrops"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BOT BATTLE -->
+    <div id="subview-bot" style="display:none;">
+      <div class="battle-setup">
+        <div class="field">
+          <label>Кейс</label>
+          <select id="battleCaseSelect"></select>
+        </div>
+        <div class="field">
+          <label>Кількість раундів</label>
+          <div class="rounds-btns" id="roundsBtns"></div>
+        </div>
+        <button class="btn gold" id="startBattleBtn">Почати бій</button>
+      </div>
+
+      <div class="battle-arena">
+        <div class="arena-side">
+          <h4>Ти <span class="total" id="playerTotal">0 голд</span></h4>
+          <div class="round-drops" id="playerDrops"></div>
+        </div>
+        <div class="arena-side">
+          <h4>Бот <span class="total" id="botTotal">0 голд</span></h4>
+          <div class="round-drops" id="botDrops"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- UPGRADE -->
+  <section class="view" id="view-upgrade">
+    <div class="page-head">
+      <h2>Апгрейд скінів</h2>
+      <p>Постав предмет на кон і спробуй виграти щось цінніше. Чим більший множник — тим менший шанс.</p>
+    </div>
+    <div class="upgrade-layout">
+      <div class="panel">
+        <h3>1. Обери предмет з інвентаря</h3>
+        <div class="pick-list" id="upgradePickList"></div>
+      </div>
+      <div class="panel">
+        <h3>2. Налаштуй апгрейд</h3>
+        <div class="target-preview">
+          <div class="side">
+            <div class="ic" id="stakeIcon">❔</div>
+            <div id="stakeVal" style="font-size:12px; color:var(--text-dim);">Не обрано</div>
+          </div>
+          <div class="arrow">➜</div>
+          <div class="side">
+            <div class="ic">🎁</div>
+            <div id="targetVal" style="font-size:12px; color:var(--accent-2);">—</div>
+          </div>
+        </div>
+        <div style="font-size:12px; color:var(--text-dim); margin-bottom:6px;">Множник</div>
+        <div class="mult-grid" id="multGrid"></div>
+
+        <div class="wheel-wrap">
+          <div class="wheel" id="wheel">
+            <div class="hub"></div>
+            <div class="needle" id="needle"></div>
+          </div>
+          <div class="chance-txt" id="chanceTxt">Шанс: —</div>
+        </div>
+
+        <button class="btn full" id="upgradeBtn" disabled>Обери предмет</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- INVENTORY -->
+  <section class="view" id="view-inventory">
+    <div class="page-head">
+      <h2>Інвентар</h2>
+      <p>Всі предмети, які ти виграв. Продавай непотрібне за голду.</p>
+    </div>
+    <div class="inv-summary">
+      <div class="stat"><div class="n" id="invCount">0</div><div class="l">Предметів</div></div>
+      <div class="stat"><div class="n" id="invValue">0 голд</div><div class="l">Загальна вартість</div></div>
+      <button class="btn ghost" id="sellAllBtn" style="align-self:center;">Продати все</button>
+    </div>
+    <div class="inv-grid" id="invGrid"></div>
+  </section>
+
+</main>
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal-card" id="modalCard"></div>
+</div>
+
+<script src="/gameData.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+/* ============ DATA (from shared GameData) ============ */
+const RARITY = GameData.RARITY;
+const RARITY_ORDER = GameData.RARITY_ORDER;
+const COLLECTIONS = GameData.COLLECTIONS;
+const CASES = GameData.CASES;
+const rollCase = GameData.rollCase;
+const rarityByValue = GameData.rarityByValue;
+const randomItemOfRarity = GameData.randomItemOfRarity;
+
+/* ============ STATE ============ */
+let state = { balance: 5000, inventory: [] };
+
+function freshStart(){
+  state = {
+    balance: 5000,
+    inventory: [
+      {...GameData.ITEMS.find(i=>i.name==='Пісочний Клинок'), uid: uid()},
+      {...GameData.ITEMS.find(i=>i.name==='Змієне Ікло'), uid: uid()},
+    ],
+  };
+}
+function uid(){ return Math.random().toString(36).slice(2,10); }
+
+/* ============ HELPERS ============ */
+function money(n){ return Math.round(n).toLocaleString('uk-UA') + ' голд'; }
+
+function toast(msg){
+  const wrap = document.getElementById('toastWrap');
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.textContent = msg;
+  wrap.appendChild(el);
+  setTimeout(()=>{ el.style.opacity='0'; el.style.transition='.3s'; setTimeout(()=>el.remove(),300); }, 2600);
+}
+function collectionChip(item){
+  const c = COLLECTIONS[item.collection];
+  if(!c) return '';
+  return `<span class="tag-collection">${c.emoji} ${c.name}</span>`;
+}
+
+/* ============ MODAL ============ */
+const modalOverlay = document.getElementById('modalOverlay');
+const modalCard = document.getElementById('modalCard');
+let modalCloseCallback = null;
+
+function showModal(html, onClose){
+  modalCard.innerHTML = html;
+  modalOverlay.classList.add('show');
+  modalCloseCallback = onClose || null;
+}
+function hideModal(){
+  modalOverlay.classList.remove('show');
+  if(modalCloseCallback){ const cb = modalCloseCallback; modalCloseCallback = null; cb(); }
+}
+let spinningModal = false;
+modalOverlay.addEventListener('click', (e)=>{ if(spinningModal) return; if(e.target===modalOverlay) hideModal(); });
+
+function itemDropModalHtml(item, btnLabel){
+  const rColor = RARITY[item.rarity].color;
+  return `
+    <div style="--r-color:${rColor}">
+      <div class="m-icon">${item.ic}</div>
+      <div class="m-title">${item.name}</div>
+      <div class="m-sub"><span class="tag-rarity" style="background:${rColor};color:#0a0a0f;">${RARITY[item.rarity].label}</span>
+        &nbsp;${collectionChip(item)}</div>
+      <div class="m-val">${money(item.value)}</div>
+      <button class="btn full" id="modalCloseBtn">${btnLabel || 'Круто!'}</button>
+    </div>
+  `;
+}
+
+/* ============ TABS ============ */
+document.querySelectorAll('nav.tabs button').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('nav.tabs button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('section.view').forEach(v=>v.classList.remove('active'));
+    document.getElementById('view-'+btn.dataset.tab).classList.add('active');
+    if(btn.dataset.tab==='inventory') renderInventory();
+    if(btn.dataset.tab==='upgrade') renderUpgradeList();
+  });
+});
+
+document.querySelectorAll('.subtabs button').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.subtabs button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('subview-online').style.display = btn.dataset.subtab==='online' ? '' : 'none';
+    document.getElementById('subview-bot').style.display = btn.dataset.subtab==='bot' ? '' : 'none';
+  });
+});
+
+/* ============ CASES VIEW ============ */
+function renderCases(){
+  const grid = document.getElementById('casesGrid');
+  grid.innerHTML = '';
+  CASES.forEach(c=>{
+    const oddsLine = RARITY_ORDER
+      .map(k=>`${RARITY[k].label.slice(0,4)} ${((c.odds[k]||0)*100).toFixed(1).replace(/\.0$/,'')}%`)
+      .join(' · ');
+    const card = document.createElement('div');
+    card.className = 'case-card';
+    card.style.setProperty('--tier-color', c.color);
+    card.innerHTML = `
+      <div class="case-icon">${c.ic}</div>
+      <h3>${c.name}</h3>
+      <div class="odds-line">${oddsLine}</div>
+      <div class="price">${money(c.price)}</div>
+      <button class="btn full" data-case="${c.id}">Відкрити</button>
+    `;
+    card.querySelector('button').addEventListener('click', ()=>openCase(c));
+    grid.appendChild(card);
+  });
+}
+
+let reelBusy = false;
+function reelModalHtml(){
+  return `
+    <div class="modal-reel">
+      <div class="m-title">Відкриття кейса...</div>
+      <div class="reel-window">
+        <div class="marker"></div>
+        <div class="reel-track" id="reelTrack"></div>
+      </div>
+    </div>
+  `;
+}
+function openCase(caseObj){
+  if(reelBusy) return;
+  if(state.balance < caseObj.price){ toast('Недостатньо голди для цього кейсу'); return; }
+  state.balance -= caseObj.price;
+  renderBalance();
+  reelBusy = true;
+  spinningModal = true;
+  document.querySelectorAll('#casesGrid button').forEach(b=>b.disabled=true);
+
+  const winner = rollCase(caseObj);
+
+  modalCard.classList.add('wide');
+  showModal(reelModalHtml(), null);
+
+  const track = document.getElementById('reelTrack');
+  const ITEM_W = 118;
+  const REEL_LEN = 45;
+  const WIN_INDEX = 38;
+  track.style.transition = 'none';
+  track.style.transform = 'translateX(0px)';
+  track.innerHTML = '';
+
+  for(let i=0;i<REEL_LEN;i++){
+    const it = (i===WIN_INDEX) ? winner : rollCase(caseObj);
+    const div = document.createElement('div');
+    div.className = 'reel-item';
+    div.style.setProperty('--r-color', RARITY[it.rarity].color);
+    div.innerHTML = `<div class="ic">${it.ic}</div><div class="nm">${it.name}</div>`;
+    track.appendChild(div);
+  }
+
+  requestAnimationFrame(()=>{
+    const windowWidth = track.parentElement.clientWidth;
+    const jitter = (Math.random()*40 - 20);
+    const target = WIN_INDEX*ITEM_W + ITEM_W/2 - windowWidth/2 + jitter;
+    track.style.transition = 'transform 5.5s cubic-bezier(0.11,0.79,0.14,1)';
+    track.style.transform = `translateX(${-target}px)`;
+  });
+
+  setTimeout(()=>{
+    spinningModal = false;
+    const dropped = {...winner, uid: uid()};
+    state.inventory.push(dropped);
+    toast(`Випало: ${winner.name} (${money(winner.value)})`);
+
+    modalCard.classList.remove('wide');
+    modalCard.innerHTML = itemDropModalHtml(winner);
+    modalCloseCallback = ()=>{
+      document.querySelectorAll('#casesGrid button').forEach(b=>b.disabled=false);
+      reelBusy = false;
+    };
+    document.getElementById('modalCloseBtn').addEventListener('click', hideModal);
+  }, 5700);
+}
+
+/* ============ INVENTORY VIEW ============ */
+function renderInventory(){
+  const grid = document.getElementById('invGrid');
+  document.getElementById('invCount').textContent = state.inventory.length;
+  const totalVal = state.inventory.reduce((s,i)=>s+i.value,0);
+  document.getElementById('invValue').textContent = money(totalVal);
+
+  if(state.inventory.length===0){
+    grid.innerHTML = `<div class="empty-note" style="grid-column:1/-1;">Інвентар порожній. Відкрий кейс, щоб отримати перші скіни.</div>`;
+    return;
+  }
+  grid.innerHTML = '';
+  state.inventory.forEach(item=>{
+    const div = document.createElement('div');
+    div.className = 'inv-item';
+    div.style.setProperty('--r-color', RARITY[item.rarity].color);
+    const collName = COLLECTIONS[item.collection] ? COLLECTIONS[item.collection].emoji + ' ' + COLLECTIONS[item.collection].name : '';
+    div.innerHTML = `
+      <div class="ic">${item.ic}</div>
+      <div class="nm">${item.name}</div>
+      <div class="coll">${collName}</div>
+      <div class="val">${money(item.value)}</div>
+      <button class="btn ghost" data-uid="${item.uid}">Продати</button>
+    `;
+    div.querySelector('button').addEventListener('click', ()=>sellItem(item.uid));
+    grid.appendChild(div);
+  });
+}
+function sellItem(itemUid){
+  const idx = state.inventory.findIndex(i=>i.uid===itemUid);
+  if(idx===-1) return;
+  const item = state.inventory[idx];
+  const payout = Math.round(item.value * 0.9);
+  state.balance += payout;
+  state.inventory.splice(idx,1);
+  renderBalance();
+  renderInventory();
+  toast(`Продано: ${item.name} за ${money(payout)}`);
+}
+document.getElementById('sellAllBtn').addEventListener('click', ()=>{
+  if(state.inventory.length===0) return;
+  const payout = Math.round(state.inventory.reduce((s,i)=>s+i.value,0) * 0.9);
+  state.balance += payout;
+  state.inventory = [];
+  renderBalance();
+  renderInventory();
+  toast(`Продано весь інвентар за ${money(payout)}`);
+});
+
+/* ============ UPGRADE VIEW ============ */
+let upgradeSelected = null;
+let selectedMult = 2;
+let wheelRotation = 0;
+
+function renderUpgradeList(){
+  const list = document.getElementById('upgradePickList');
+  if(state.inventory.length===0){
+    list.innerHTML = `<div class="empty-note">Немає предметів для апгрейду</div>`;
+    upgradeSelected = null;
+    updateUpgradePanel();
+    return;
+  }
+  list.innerHTML = '';
+  state.inventory.forEach(item=>{
+    const row = document.createElement('div');
+    row.className = 'pick-row' + (item.uid===upgradeSelected ? ' selected':'');
+    row.innerHTML = `
+      <div class="ic">${item.ic}</div>
+      <div class="info">
+        <div class="nm">${item.name}</div>
+        <div class="val">${RARITY[item.rarity].label} · ${money(item.value)}</div>
+      </div>
+    `;
+    row.addEventListener('click', ()=>{
+      upgradeSelected = item.uid;
+      renderUpgradeList();
+      updateUpgradePanel();
+    });
+    list.appendChild(row);
+  });
+}
+
+const MULTIPLIERS = [2,3,5,10,20,50];
+function renderMultGrid(){
+  const grid = document.getElementById('multGrid');
+  grid.innerHTML = '';
+  MULTIPLIERS.forEach(m=>{
+    const b = document.createElement('button');
+    b.className = 'mult-btn' + (m===selectedMult ? ' active':'');
+    b.textContent = 'x'+m;
+    b.addEventListener('click', ()=>{ selectedMult = m; renderMultGrid(); updateUpgradePanel(); });
+    grid.appendChild(b);
+  });
+}
+
+function updateUpgradePanel(){
+  const btn = document.getElementById('upgradeBtn');
+  const stakeIcon = document.getElementById('stakeIcon');
+  const stakeVal = document.getElementById('stakeVal');
+  const targetVal = document.getElementById('targetVal');
+  const chanceTxt = document.getElementById('chanceTxt');
+  const wheel = document.getElementById('wheel');
+
+  const item = state.inventory.find(i=>i.uid===upgradeSelected);
+  if(!item){
+    stakeIcon.textContent = '❔';
+    stakeVal.textContent = 'Не обрано';
+    targetVal.textContent = '—';
+    chanceTxt.textContent = 'Шанс: —';
+    wheel.style.background = `conic-gradient(var(--line) 0% 100%)`;
+    btn.disabled = true;
+    btn.textContent = 'Обери предмет';
+    return;
+  }
+  const chance = Math.max(2, Math.min(90, 90/selectedMult));
+  const targetValue = Math.round(item.value * selectedMult);
+
+  stakeIcon.textContent = item.ic;
+  stakeVal.textContent = `${item.name} (${money(item.value)})`;
+  targetVal.textContent = `≈ ${money(targetValue)}`;
+  chanceTxt.textContent = `Шанс: ${chance.toFixed(1)}%`;
+  wheel.style.background = `conic-gradient(var(--success) 0% ${chance}%, var(--danger) ${chance}% 100%)`;
+  btn.disabled = false;
+  btn.textContent = `Апгрейднути (x${selectedMult})`;
+}
+
+document.getElementById('upgradeBtn').addEventListener('click', ()=>{
+  const item = state.inventory.find(i=>i.uid===upgradeSelected);
+  if(!item) return;
+  const btn = document.getElementById('upgradeBtn');
+  btn.disabled = true;
+  const chance = Math.max(2, Math.min(90, 90/selectedMult));
+  const success = Math.random()*100 < chance;
+
+  const landPercent = success
+    ? Math.random()*Math.max(chance-2,1)
+    : chance + Math.random()*(98-chance);
+
+  const needle = document.getElementById('needle');
+  const basePrev = Math.floor(wheelRotation/360)*360;
+  let target = basePrev + 4*360 + landPercent*3.6;
+  while(target <= wheelRotation) target += 360;
+  wheelRotation = target;
+  needle.style.transition = 'transform 3.2s cubic-bezier(.15,.85,.15,1)';
+  needle.style.transform = `translate(-50%,-100%) rotate(${wheelRotation}deg)`;
+
+  setTimeout(()=>{
+    const idx = state.inventory.findIndex(i=>i.uid===item.uid);
+    if(idx!==-1) state.inventory.splice(idx,1);
+
+    if(success){
+      const targetValue = Math.round(item.value * selectedMult);
+      const rarity = rarityByValue(targetValue);
+      const won = {...randomItemOfRarity(rarity, 0.08), value: targetValue, uid: uid()};
+      state.inventory.push(won);
+      toast(`Апгрейд успішний: ${won.name}`);
+      showModal(itemDropModalHtml(won, 'Забрати!'), ()=>{
+        upgradeSelected = null;
+        renderInventory(); renderUpgradeList(); updateUpgradePanel();
+      });
+      document.getElementById('modalCloseBtn').addEventListener('click', hideModal);
+    } else {
+      toast('Апгрейд не вдався');
+      showModal(`
+        <div style="--r-color:var(--danger)">
+          <div class="m-icon">💀</div>
+          <div class="m-title" style="color:var(--danger);">Невдача</div>
+          <div class="m-sub">Предмет «${item.name}» втрачено.</div>
+          <button class="btn full" id="modalCloseBtn">Зрозуміло</button>
+        </div>
+      `, ()=>{
+        upgradeSelected = null;
+        renderInventory(); renderUpgradeList(); updateUpgradePanel();
+      });
+      document.getElementById('modalCloseBtn').addEventListener('click', hideModal);
+    }
+  }, 3300);
+});
+
+/* ============ BOT BATTLE ============ */
+let battleBusy = false;
+let selectedRounds = 3;
+
+function renderBattleSetup(){
+  const sel = document.getElementById('battleCaseSelect');
+  sel.innerHTML = CASES.map(c=>`<option value="${c.id}">${c.name} — ${money(c.price)}</option>`).join('');
+
+  const roundsWrap = document.getElementById('roundsBtns');
+  roundsWrap.innerHTML = '';
+  [1,3,5,7].forEach(r=>{
+    const b = document.createElement('button');
+    b.className = 'mult-btn' + (r===selectedRounds ? ' active':'');
+    b.textContent = r;
+    b.addEventListener('click', ()=>{
+      selectedRounds = r;
+      [...roundsWrap.children].forEach(c=>c.classList.remove('active'));
+      b.classList.add('active');
+    });
+    roundsWrap.appendChild(b);
+  });
+}
+
+document.getElementById('startBattleBtn').addEventListener('click', ()=>{
+  if(battleBusy) return;
+  const caseId = document.getElementById('battleCaseSelect').value;
+  const caseObj = CASES.find(c=>c.id===caseId);
+  const totalCost = caseObj.price * selectedRounds;
+  if(state.balance < totalCost){ toast('Недостатньо голди на цей бій'); return; }
+
+  state.balance -= totalCost;
+  renderBalance();
+  battleBusy = true;
+  document.getElementById('startBattleBtn').disabled = true;
+
+  document.getElementById('playerDrops').innerHTML = '';
+  document.getElementById('botDrops').innerHTML = '';
+  document.getElementById('playerTotal').textContent = money(0);
+  document.getElementById('botTotal').textContent = money(0);
+
+  let playerItems = [];
+  let botItems = [];
+  let round = 0;
+
+  function nextRound(){
+    if(round >= selectedRounds){ finishBattle(); return; }
+    const pItem = rollCase(caseObj);
+    const bItem = rollCase(caseObj);
+    playerItems.push(pItem);
+    botItems.push(bItem);
+
+    addDrop('playerDrops', pItem);
+    addDrop('botDrops', bItem);
+    const pTotal = playerItems.reduce((s,i)=>s+i.value,0);
+    const bTotal = botItems.reduce((s,i)=>s+i.value,0);
+    document.getElementById('playerTotal').textContent = money(pTotal);
+    document.getElementById('botTotal').textContent = money(bTotal);
+
+    round++;
+    setTimeout(nextRound, 650);
+  }
+  function addDrop(containerId, item){
+    const c = document.getElementById(containerId);
+    const div = document.createElement('div');
+    div.className = 'ritem';
+    div.style.setProperty('--r-color', RARITY[item.rarity].color);
+    div.innerHTML = `<div class="ic">${item.ic}</div><div class="val">${money(item.value)}</div>`;
+    c.appendChild(div);
+  }
+  function finishBattle(){
+    const pTotal = playerItems.reduce((s,i)=>s+i.value,0);
+    const bTotal = botItems.reduce((s,i)=>s+i.value,0);
+    const won = pTotal >= bTotal;
+
+    let itemsHtml = '';
+    if(won){
+      [...playerItems, ...botItems].forEach(it=>state.inventory.push({...it, uid: uid()}));
+      itemsHtml = [...playerItems, ...botItems].map(it=>`
+        <div class="mi" style="--r-color:${RARITY[it.rarity].color}">
+          <div class="ic">${it.ic}</div><div class="val">${money(it.value)}</div>
+        </div>`).join('');
+    }
+
+    const html = won ? `
+      <div class="m-icon">🏆</div>
+      <div class="m-title" style="color:var(--success);">Перемога!</div>
+      <div class="m-sub">Ти: ${money(pTotal)} проти Бота: ${money(bTotal)}</div>
+      <div class="m-val">+${money(pTotal+bTotal)} в інвентар</div>
+      <div class="m-items">${itemsHtml}</div>
+      <button class="btn full" id="modalCloseBtn">Забрати трофеї</button>
+    ` : `
+      <div class="m-icon">💀</div>
+      <div class="m-title" style="color:var(--danger);">Поразка</div>
+      <div class="m-sub">Ти: ${money(pTotal)} проти Бота: ${money(bTotal)}</div>
+      <div class="m-val" style="color:var(--danger);">Бот забрав усе (${money(pTotal+bTotal)})</div>
+      <button class="btn full" id="modalCloseBtn">Спробувати ще</button>
+    `;
+    toast(won ? 'Ти виграв бій кейсів!' : 'Бот виграв цей бій');
+    showModal(html, ()=>{ renderInventory(); });
+    document.getElementById('modalCloseBtn').addEventListener('click', hideModal);
+
+    battleBusy = false;
+    document.getElementById('startBattleBtn').disabled = false;
+  }
+  nextRound();
+});
+
+/* ============ ONLINE DUEL (real player vs player via server) ============ */
+const socket = io();
+let myId = null;
+let currentRoom = null; // {code, status, caseId, rounds, players:[...]}
+let paidEntryFee = false;
+
+function setConn(on, text){
+  document.getElementById('connDot').classList.toggle('on', on);
+  document.getElementById('connText').textContent = text;
+}
+socket.on('connect', ()=>{ myId = socket.id; setConn(true, "З'єднано з сервером"); });
+socket.on('disconnect', ()=>{ setConn(false, "Немає з'єднання з сервером"); });
+socket.on('connect_error', ()=>{ setConn(false, "Сервер недоступний"); });
+
+function renderDuelCaseAndRounds(){
+  const sel = document.getElementById('duelCaseSelect');
+  sel.innerHTML = CASES.map(c=>`<option value="${c.id}">${c.name} — ${money(c.price)}</option>`).join('');
+  sel.value = currentRoom.caseId;
+  sel.onchange = ()=> socket.emit('duel:configure', { caseId: sel.value, rounds: currentRoom.rounds });
+
+  const roundsWrap = document.getElementById('duelRoundsBtns');
+  roundsWrap.innerHTML = '';
+  [1,3,5,7].forEach(r=>{
+    const b = document.createElement('button');
+    b.className = 'mult-btn' + (r===currentRoom.rounds ? ' active':'');
+    b.textContent = r;
+    b.addEventListener('click', ()=> socket.emit('duel:configure', { caseId: currentRoom.caseId, rounds: r }));
+    roundsWrap.appendChild(b);
+  });
+}
+
+function renderRoom(){
+  document.getElementById('duelLobby').style.display = 'none';
+  document.getElementById('duelRoom').style.display = '';
+  document.getElementById('roomCodeText').textContent = currentRoom.code;
+  const link = `${location.origin}${location.pathname}?duel=${currentRoom.code}`;
+  document.getElementById('roomLinkInput').value = link;
+
+  const isHost = currentRoom.players.find(p=>p.id===myId)?.isHost;
+  document.getElementById('hostConfig').style.display = isHost ? '' : 'none';
+  document.getElementById('guestConfigNote').style.display = isHost ? 'none' : '';
+  if(isHost) renderDuelCaseAndRounds();
+  else {
+    const c = CASES.find(x=>x.id===currentRoom.caseId);
+    document.getElementById('guestConfigNote').textContent =
+      `Хост обрав: ${c ? c.name+' — '+money(c.price) : '—'}, раундів: ${currentRoom.rounds}`;
+  }
+
+  document.getElementById('playersRow').innerHTML = currentRoom.players.map(p=>`
+    <div class="player-chip ${p.ready?'ready':''}">
+      ${p.isHost?'<span class="host-badge">ХОСТ</span>':''}
+      ${p.name}${p.id===myId?' (ти)':''} ${p.ready?'✓ готовий':(p.connected?'':'⚠ офлайн')}
+    </div>
+  `).join('') || '<div class="empty-note">Очікуємо гравців...</div>';
+
+  const me = currentRoom.players.find(p=>p.id===myId);
+  const readyBtn = document.getElementById('readyBtn');
+  readyBtn.textContent = me && me.ready ? 'Скасувати готовність' : 'Я готовий';
+  readyBtn.disabled = currentRoom.players.length < 2;
+}
+
+document.getElementById('createDuelBtn').addEventListener('click', ()=>{
+  const name = document.getElementById('hostNameInput').value.trim() || 'Гравець 1';
+  socket.emit('duel:create', { name });
+});
+document.getElementById('joinDuelBtn').addEventListener('click', ()=>{
+  const name = document.getElementById('joinNameInput').value.trim() || 'Гравець 2';
+  const code = document.getElementById('joinCodeInput').value.trim();
+  if(!code) return toast('Введи код кімнати');
+  socket.emit('duel:join', { code, name });
+});
+document.getElementById('copyCodeBtn').addEventListener('click', ()=>{
+  navigator.clipboard.writeText(currentRoom.code).then(()=>toast('Код скопійовано'));
+});
+document.getElementById('copyLinkBtn').addEventListener('click', ()=>{
+  navigator.clipboard.writeText(document.getElementById('roomLinkInput').value).then(()=>toast('Посилання скопійовано'));
+});
+document.getElementById('readyBtn').addEventListener('click', ()=>{
+  const me = currentRoom.players.find(p=>p.id===myId);
+  const caseObj = CASES.find(c=>c.id===currentRoom.caseId);
+  const wantsReady = !(me && me.ready);
+  if(wantsReady){
+    const cost = caseObj.price * currentRoom.rounds;
+    if(state.balance < cost){ toast(`Недостатньо голди (потрібно ${money(cost)})`); return; }
+  }
+  socket.emit('duel:ready', { ready: wantsReady });
+});
+document.getElementById('leaveRoomBtn').addEventListener('click', ()=>{
+  socket.emit('duel:leave');
+  currentRoom = null;
+  document.getElementById('duelRoom').style.display = 'none';
+  document.getElementById('duelArena').style.display = 'none';
+  document.getElementById('duelLobby').style.display = '';
+});
+
+socket.on('duel:created', ({code})=>{ toast(`Дуель створено! Код: ${code}`); });
+socket.on('duel:joined', ({code})=>{ toast(`Приєднався до кімнати ${code}`); });
+socket.on('duel:error', ({message})=>{ toast(message); });
+socket.on('duel:opponent-left', ()=>{
+  if(currentRoom) toast('Суперник вийшов з кімнати');
+});
+socket.on('duel:state', (roomState)=>{
+  currentRoom = roomState;
+  if(roomState.status !== 'battling'){
+    document.getElementById('duelArena').style.display = 'none';
+    document.getElementById('duelRoom').style.display = '';
+    document.getElementById('duelLobby').style.display = 'none';
+    renderRoom();
+  }
+});
+
+let duelPaid = false;
+socket.on('duel:starting', ({caseId, rounds, caseName, price})=>{
+  const cost = price * rounds;
+  if(state.balance >= cost){
+    state.balance -= cost;
+    renderBalance();
+    duelPaid = true;
+  } else {
+    duelPaid = false;
+  }
+  const me = currentRoom.players.find(p=>p.id===myId);
+  const opp = currentRoom.players.find(p=>p.id!==myId);
+  document.getElementById('meName').textContent = me ? me.name : 'Ти';
+  document.getElementById('oppName').textContent = opp ? opp.name : '???';
+  document.getElementById('meDrops').innerHTML = '';
+  document.getElementById('oppDrops').innerHTML = '';
+  document.getElementById('meTotal').textContent = money(0);
+  document.getElementById('oppTotal').textContent = money(0);
+  document.getElementById('duelRoom').style.display = 'none';
+  document.getElementById('duelArena').style.display = '';
+  toast(`Дуель почалась: ${caseName} × ${rounds} раундів`);
+});
+
+socket.on('duel:round', ({round, drops, totals})=>{
+  const oppId = Object.keys(drops).find(id=>id!==myId);
+  const myItem = drops[myId];
+  const oppItem = drops[oppId];
+  if(myItem) addDuelDrop('meDrops', myItem);
+  if(oppItem) addDuelDrop('oppDrops', oppItem);
+  if(myId!=null) document.getElementById('meTotal').textContent = money(totals[myId]||0);
+  if(oppId!=null) document.getElementById('oppTotal').textContent = money(totals[oppId]||0);
+});
+function addDuelDrop(containerId, item){
+  const c = document.getElementById(containerId);
+  const div = document.createElement('div');
+  div.className = 'ritem';
+  div.style.setProperty('--r-color', RARITY[item.rarity].color);
+  div.innerHTML = `<div class="ic">${item.ic}</div><div class="val">${money(item.value)}</div>`;
+  c.appendChild(div);
+}
+
+socket.on('duel:finished', ({totals, winnerId})=>{
+  const oppId = Object.keys(totals).find(id=>id!==myId);
+  const myTotal = totals[myId]||0;
+  const oppTotal = totals[oppId]||0;
+  const iWon = winnerId === myId;
+  const isDraw = winnerId == null;
+
+  if(duelPaid && iWon){
+    // Переможець забирає суму обох пулів як бонус голди в інвентар/баланс.
+    const prize = myTotal + oppTotal;
+    state.balance += prize;
+    renderBalance();
+  } else if(duelPaid && isDraw){
+    // Нічия — гроші повертаються.
+    const caseObj = CASES.find(c=>c.id===currentRoom.caseId);
+    state.balance += caseObj.price * currentRoom.rounds;
+    renderBalance();
+  }
+
+  const title = isDraw ? 'Нічия!' : (iWon ? 'Перемога!' : 'Поразка');
+  const color = isDraw ? 'var(--accent-2)' : (iWon ? 'var(--success)' : 'var(--danger)');
+  const icon = isDraw ? '🤝' : (iWon ? '🏆' : '💀');
+  const sub = `Ти: ${money(myTotal)} проти суперника: ${money(oppTotal)}`;
+  const valLine = isDraw
+    ? 'Ставку повернено'
+    : (iWon ? `+${money(myTotal+oppTotal)} голди` : `Суперник забрав усе (${money(myTotal+oppTotal)})`);
+
+  showModal(`
+    <div class="m-icon">${icon}</div>
+    <div class="m-title" style="color:${color};">${title}</div>
+    <div class="m-sub">${sub}</div>
+    <div class="m-val" style="${iWon||isDraw?'':'color:var(--danger);'}">${valLine}</div>
+    <button class="btn full" id="modalCloseBtn">Ок</button>
+  `, ()=>{
+    document.getElementById('duelArena').style.display = 'none';
+    document.getElementById('duelRoom').style.display = '';
+    renderInventory();
+  });
+  document.getElementById('modalCloseBtn').addEventListener('click', hideModal);
+});
+
+// Автозаповнення коду кімнати з посилання ?duel=CODE
+(function autoFillFromLink(){
+  const params = new URLSearchParams(location.search);
+  const code = params.get('duel');
+  if(code){
+    document.getElementById('joinCodeInput').value = code.toUpperCase();
+    document.querySelectorAll('nav.tabs button').forEach(b=>b.classList.toggle('active', b.dataset.tab==='battle'));
+    document.querySelectorAll('section.view').forEach(v=>v.classList.toggle('active', v.id==='view-battle'));
+  }
+})();
+
+/* ============ RESET ============ */
+document.getElementById('resetBtn').addEventListener('click', ()=>{
+  if(!confirm('Скинути прогрес і почати гру заново?')) return;
+  freshStart();
+  renderAll();
+  toast('Гру скинуто. Новий баланс: ' + money(state.balance));
+});
+
+/* ============ INIT ============ */
+function renderBalance(){
+  document.getElementById('balanceDisplay').textContent = money(state.balance);
+}
+function renderAll(){
+  renderBalance();
+  renderCases();
+  renderInventory();
+  renderMultGrid();
+  renderUpgradeList();
+  updateUpgradePanel();
+  renderBattleSetup();
+}
+freshStart();
+renderAll();
+</script>
+</body>
+</html>
